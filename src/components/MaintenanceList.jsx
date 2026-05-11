@@ -19,6 +19,7 @@ export default function MaintenanceList() {
   const [editFormData, setEditFormData] = useState({
     cost: "",
     reading: "",
+    date: "",
   });
 
   useEffect(() => {
@@ -65,24 +66,32 @@ export default function MaintenanceList() {
 
   const handleEdit = (log) => {
     setEditingId(log.id);
+    const date = new Date(log.timestamp.seconds * 1000)
+      .toISOString()
+      .split("T")[0];
     setEditFormData({
       cost: log.cost,
       reading: log.reading,
+      date: date,
     });
   };
 
   const handleSaveEdit = async () => {
-    if (!editFormData.cost || !editFormData.reading) {
+    if (!editFormData.cost || !editFormData.reading || !editFormData.date) {
       toast.error("Please fill in all fields");
       return;
     }
 
     try {
+      const selectedDate = new Date(editFormData.date);
+      selectedDate.setHours(12, 0, 0, 0);
+
       await updateDoc(
         doc(db, "users", auth.currentUser.uid, "maintenance", editingId),
         {
           cost: parseFloat(editFormData.cost),
           reading: parseFloat(editFormData.reading),
+          timestamp: selectedDate,
         }
       );
       toast.success("Maintenance log updated successfully! ✏️", {
@@ -97,7 +106,7 @@ export default function MaintenanceList() {
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setEditFormData({ cost: "", reading: "" });
+    setEditFormData({ cost: "", reading: "", date: "" });
   };
 
   const formatDate = (timestamp) => {
@@ -163,7 +172,19 @@ export default function MaintenanceList() {
                       <td className="py-3 px-2">
                         {getServiceIcon(log.type)} {getServiceName(log.type)}
                       </td>
-                      <td className="py-3 px-2">{formatDate(log.timestamp)}</td>
+                      <td className="py-3 px-2">
+                        <input
+                          type="date"
+                          value={editFormData.date}
+                          onChange={(e) =>
+                            setEditFormData({
+                              ...editFormData,
+                              date: e.target.value,
+                            })
+                          }
+                          className="w-full bg-slate-600 text-white px-2 py-1 rounded text-xs"
+                        />
+                      </td>
                       <td className="py-3 px-2">
                         <input
                           type="number"

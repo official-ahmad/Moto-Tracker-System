@@ -20,6 +20,7 @@ export default function LogsList() {
     amount: "",
     liters: "",
     reading: "",
+    date: "",
   });
 
   useEffect(() => {
@@ -62,26 +63,39 @@ export default function LogsList() {
 
   const handleEdit = (log) => {
     setEditingId(log.id);
+    const date = new Date(log.timestamp.seconds * 1000)
+      .toISOString()
+      .split("T")[0];
     setEditFormData({
       amount: log.amount,
       liters: log.liters,
       reading: log.reading,
+      date: date,
     });
   };
 
   const handleSaveEdit = async () => {
-    if (!editFormData.amount || !editFormData.liters || !editFormData.reading) {
+    if (
+      !editFormData.amount ||
+      !editFormData.liters ||
+      !editFormData.reading ||
+      !editFormData.date
+    ) {
       toast.error("Please fill in all fields");
       return;
     }
 
     try {
+      const selectedDate = new Date(editFormData.date);
+      selectedDate.setHours(12, 0, 0, 0);
+
       await updateDoc(
         doc(db, "users", auth.currentUser.uid, "logs", editingId),
         {
           amount: parseFloat(editFormData.amount),
           liters: parseFloat(editFormData.liters),
           reading: parseFloat(editFormData.reading),
+          timestamp: selectedDate,
         }
       );
       toast.success("Log updated successfully! ✏️", { duration: 2000 });
@@ -94,7 +108,7 @@ export default function LogsList() {
 
   const handleCancelEdit = () => {
     setEditingId(null);
-    setEditFormData({ amount: "", liters: "", reading: "" });
+    setEditFormData({ amount: "", liters: "", reading: "", date: "" });
   };
 
   const formatDate = (timestamp) => {
@@ -157,7 +171,16 @@ export default function LogsList() {
                 if (isEditing) {
                   return (
                     <tr key={log.id} className="border-b border-slate-700 bg-slate-700">
-                      <td className="py-3 px-2">{formatDate(log.timestamp)}</td>
+                      <td className="py-3 px-2">
+                        <input
+                          type="date"
+                          value={editFormData.date}
+                          onChange={(e) =>
+                            setEditFormData({ ...editFormData, date: e.target.value })
+                          }
+                          className="w-full bg-slate-600 text-white px-2 py-1 rounded text-xs"
+                        />
+                      </td>
                       <td className="py-3 px-2">
                         <input
                           type="number"

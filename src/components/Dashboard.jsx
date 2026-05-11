@@ -18,8 +18,12 @@ export default function Dashboard() {
 
   // Only show modal after loading is complete AND no bike exists
   useEffect(() => {
-    if (!loading && !bike) {
-      setShowBikeModal(true);
+    if (!loading) {
+      if (!bike) {
+        setShowBikeModal(true);
+      } else {
+        setShowBikeModal(false);
+      }
     }
   }, [loading, bike]);
 
@@ -88,7 +92,9 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="text-sm text-blue-300">Registered Bike</h3>
-                    <p className="text-xl font-bold text-white">{bike.bikeName}</p>
+                    <p className="text-xl font-bold text-white">
+                      {bike.bikeName}
+                    </p>
                     <p className="text-sm text-blue-200">
                       Rider: {bike.riderName} | Owner: {bike.ownerName}
                     </p>
@@ -126,22 +132,6 @@ export default function Dashboard() {
                 🔧 Maintenance
               </button>
             </div>
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            ⛽ Fuel Logs
-          </button>
-          <button
-            onClick={() => setActiveTab("maintenance")}
-            className={`px-6 py-3 font-bold rounded-t-lg transition-all ${
-              activeTab === "maintenance"
-                ? "bg-purple-600 text-white border-b-2 border-purple-500"
-                : "text-slate-400 hover:text-white"
-            }`}
-          >
-            🔧 Maintenance
-          </button>
-        </div>
 
             {/* My Bikes Tab */}
             {!bike && (
@@ -161,7 +151,9 @@ export default function Dashboard() {
             {/* Stats Grid */}
             {bike && (
               <div className="mb-8">
-                <h2 className="text-lg font-bold text-white mb-4">Statistics</h2>
+                <h2 className="text-lg font-bold text-white mb-4">
+                  Statistics
+                </h2>
                 <Stats key={refreshKey} />
               </div>
             )}

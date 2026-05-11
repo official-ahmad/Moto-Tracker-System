@@ -10,12 +10,14 @@ import {
 } from "firebase/firestore";
 import { db, auth } from "../firebase";
 import toast from "react-hot-toast";
+import PrintSlip from "./PrintSlip";
 
 export default function LogsList() {
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
   const [editingId, setEditingId] = useState(null);
+  const [showPrintSlip, setShowPrintSlip] = useState(false);
   const [editFormData, setEditFormData] = useState({
     amount: "",
     liters: "",
@@ -114,11 +116,10 @@ export default function LogsList() {
   const formatDate = (timestamp) => {
     if (!timestamp) return "N/A";
     const date = new Date(timestamp.seconds * 1000);
-    return (
-      date.toLocaleDateString() +
-      " " +
-      date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-    );
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = String(date.getFullYear()).slice(-2);
+    return `${day}/${month}/${year}`;
   };
 
   if (loading) {
@@ -132,7 +133,25 @@ export default function LogsList() {
 
   return (
     <div className="bg-slate-800 rounded-lg p-6 border border-slate-700">
-      <h2 className="text-xl font-bold text-white mb-4">Fuel Logs</h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-bold text-white">Fuel Logs</h2>
+        {logs.length > 0 && (
+          <button
+            onClick={() => setShowPrintSlip(true)}
+            className="px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-500 hover:to-green-600 text-white rounded-lg text-sm font-bold transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105"
+          >
+            🖨️ Print Slip
+          </button>
+        )}
+      </div>
+
+      {showPrintSlip && (
+        <PrintSlip
+          logs={logs}
+          type="fuel"
+          onClose={() => setShowPrintSlip(false)}
+        />
+      )}
 
       {logs.length === 0 ? (
         <div className="text-center text-slate-400">

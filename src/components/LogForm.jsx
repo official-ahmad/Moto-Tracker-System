@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import { db, auth } from "../firebase";
+import toast from "react-hot-toast";
 
-export default function LogForm({ onSuccess }) {
+export default function LogForm({ onSuccess, bike }) {
   const today = new Date().toISOString().split("T")[0];
   const [formData, setFormData] = useState({
     amount: "",
@@ -50,6 +51,9 @@ export default function LogForm({ onSuccess }) {
       selectedDate.setHours(12, 0, 0, 0);
 
       await addDoc(collection(db, "users", auth.currentUser.uid, "logs"), {
+        bikeName: bike.bikeName,
+        riderName: bike.riderName,
+        ownerName: bike.ownerName,
         amount: parseFloat(formData.amount),
         liters: parseFloat(formData.liters),
         reading: parseFloat(formData.reading),
@@ -57,6 +61,7 @@ export default function LogForm({ onSuccess }) {
       });
 
       setFormData({ amount: "", liters: "", reading: "", date: today });
+      toast.success("Fuel log added! ⛽", { duration: 2000 });
       onSuccess?.();
     } catch (err) {
       setError("Failed to save log: " + err.message);
@@ -71,7 +76,8 @@ export default function LogForm({ onSuccess }) {
       onSubmit={handleSubmit}
       className="bg-slate-800 rounded-lg p-6 border border-slate-700"
     >
-      <h2 className="text-xl font-bold text-white mb-4">Add Fuel Log</h2>
+      <h2 className="text-xl font-bold text-white mb-2">Add Fuel Log</h2>
+      <p className="text-sm text-blue-300 mb-4">Bike: {bike.bikeName}</p>
 
       {error && (
         <div className="bg-red-900/30 text-red-300 p-3 rounded mb-4 text-sm">

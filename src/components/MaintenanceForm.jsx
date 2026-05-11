@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { addDoc, collection } from "firebase/firestore";
 import { db, auth } from "../firebase";
+import toast from "react-hot-toast";
 
-export default function MaintenanceForm({ onSuccess }) {
+export default function MaintenanceForm({ onSuccess, bike }) {
   const today = new Date().toISOString().split("T")[0];
   const [type, setType] = useState("oil-change");
   const [formData, setFormData] = useState({
@@ -40,15 +41,20 @@ export default function MaintenanceForm({ onSuccess }) {
       const selectedDate = new Date(formData.date);
       selectedDate.setHours(12, 0, 0, 0);
 
-      await addDoc(collection(db, "users", auth.currentUser.uid, "maintenance"), {
-        type: type,
-        cost: parseFloat(formData.cost),
-        reading: parseFloat(formData.reading),
-        timestamp: selectedDate,
-      });
+      await addDoc(
+        collection(db, "users", auth.currentUser.uid, "maintenance"),
+        {
+          bikeName: bike.bikeName,
+          type: type,
+          cost: parseFloat(formData.cost),
+          reading: parseFloat(formData.reading),
+          timestamp: selectedDate,
+        },
+      );
 
       setFormData({ cost: "", reading: "", date: today });
       setType("oil-change");
+      toast.success("Maintenance log added! 🔧", { duration: 2000 });
       onSuccess?.();
     } catch (err) {
       setError("Failed to save maintenance log: " + err.message);
@@ -63,7 +69,8 @@ export default function MaintenanceForm({ onSuccess }) {
       onSubmit={handleSubmit}
       className="bg-slate-800 rounded-lg p-6 border border-slate-700"
     >
-      <h2 className="text-xl font-bold text-white mb-4">🔧 Maintenance Log</h2>
+      <h2 className="text-xl font-bold text-white mb-2">🔧 Maintenance Log</h2>
+      <p className="text-sm text-purple-300 mb-4">Bike: {bike.bikeName}</p>
 
       {error && (
         <div className="bg-red-900/30 text-red-300 p-3 rounded mb-4 text-sm">
